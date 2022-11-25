@@ -2,129 +2,121 @@
 
 using namespace std;
 
-int vertex;
 
 class Node {
-
-  public:
+    public:
     int data;
-    Node *next;
     int status;
-    struct Adjacent *adj;
+    Node *next;
+    class Adjacent *adjacent;
 
     Node(int data) {
         this->data = data;
-        this->next = NULL;
-        this->adj = NULL;
         this->status = 0;
+        this->next = NULL;
+        this->adjacent = NULL;
+    }
+};
+
+class Adjacent {
+    public:
+    class Node *node;
+    Adjacent *next;
+    Adjacent(Node *node) {
+        this->node = node;
+        this->next = NULL;
     }
 };
 
 typedef Node node;
+typedef Adjacent adjcent;
 
-struct Adjacent {
-    node *dest;
-    struct Adjacent *adj;
-};
+node *start = NULL, *nodeptr;
+adjcent *adjacentptr = NULL;
 
-typedef Adjacent adjacent;
-
-node *start = NULL, *ptr;
-adjacent *adjptr = NULL;
-
-void create_node_list(int item) {
-
-    for(int i = 0; i < item; i++) {
+void createNodeList(int v) {
+    node *tail = start;
+    for(int i = 0; i < v; i++) {
         if(i == 0) {
             start = new Node(i);
-            ptr = start;
+            tail = start;
         }
         else {
-            ptr->next = new Node(i);
-            ptr = ptr->next;
+            tail->next = new Node(i);
+            tail = tail->next;
         }
-    }
-}
-
-adjacent* createAdjacent(node *temp_node) {
-    adjacent *temp_adjacent = new adjacent;
-    temp_adjacent->dest = temp_node;
-    temp_adjacent->adj = NULL;
-
-    return temp_adjacent;
-}
-
-
-void createGraph() {
-    
-    // int vertex;
-    cout << "Enter number of vertices in the graph : ";
-    cin >> vertex;
-    create_node_list(vertex);
-
-    ptr = start;
-    for(int i = 0; i < vertex; i++) {
-
-        cout << "Enter neighbours of " << i << " (-1 to stop) : ";
-        node *temp = start;
-        while(true) {
-            int item;
-            cin >> item;
-            create_node_list(item);
-            if(item == -1) break;
-
-            while(true) {  // search for the specific node
-                if(temp == NULL) {
-                    cout << "node not found!" << endl;
-                    break;
-                }
-                if(temp->data == item) {
-                    if(ptr->adj == NULL) {
-                        ptr->adj = createAdjacent(temp);
-                        adjptr = ptr->adj;
-                    }
-                    else {
-                        adjptr = createAdjacent(temp);
-                        adjptr = adjptr->adj;
-                    }
-                }
-                temp = temp->next;
-            }
-        }
-        ptr = ptr->next;
-    }
-}
-
-// Display the adjacency list
-
-void display() {
-    node* temp = start;
-    for(int i = 0; i < vertex; i++) {
-        cout << "Adjacent of " << i << " --> ";
-        adjptr = temp->adj;
-        while(adjptr != NULL) {
-            cout << adjptr->dest->data;
-            adjptr = adjptr->adj;
-        }
-        cout << endl;
-        temp = temp->next;
     }
 }
 
 void printNodeList() {
     node *temp = start;
+
     while(temp != NULL) {
         cout << temp->data << " ";
         temp = temp->next;
     }
+    cout << endl;
+}
+
+node* findNodeForItem(int item) {
+    node *temp = start;
+    while(temp != NULL) {
+        if(temp->data == item) return temp;
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+void createGraph() {
+    cout << "Enter number of vertexes : ";
+    int vertex;
+    cin >> vertex;
+    createNodeList(vertex);
+    printNodeList();
+
+    nodeptr = start;
+    while(nodeptr != NULL) {
+        adjacentptr = NULL;
+        cout << "Enter connected nodes with " << nodeptr->data << " (-1) for end : ";
+        while(true) {
+            int item;
+            cin >> item;
+            if(item == -1) break;
+            else if(findNodeForItem(item) != NULL) {
+                node *temp = findNodeForItem(item);
+                if(nodeptr->adjacent == NULL) {
+                    nodeptr->adjacent = new Adjacent(temp);
+                    adjacentptr = nodeptr->adjacent;
+                }
+                else {
+                    adjacentptr->next = new Adjacent(temp);
+                    adjacentptr = adjacentptr->next;
+                }
+            }
+            else {
+                cout << "Node not found! " << endl;
+            }
+        }
+        nodeptr = nodeptr->next;
+    }
+}
+
+void printAdjacencyList() {
+    nodeptr = start;
+    while(nodeptr != NULL) {
+        cout << nodeptr->data << " --> ";
+        adjacentptr = nodeptr->adjacent;
+        while(adjacentptr != NULL) {
+            cout << adjacentptr->node->data << " ";
+            adjacentptr = adjacentptr->next;
+        }
+        cout << endl;
+        nodeptr = nodeptr->next;
+    }
 }
 
 int main() {
-    
-    // createGraph();
-    // display();
-    // create_node_list();
-    printNodeList();
-    cout << start->data << "\n ";
+    createGraph();
+    printAdjacencyList();
     return 0;
 }
