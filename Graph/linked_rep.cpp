@@ -1,92 +1,246 @@
-#include<iostream>
-
+#include <iostream>
+#include<queue>
+#include<vector>
+#include<stack>
 using namespace std;
-
-class Node {
-    public : 
+class Node
+{
+public:
     int data;
+    int status;
     Node *next;
+    class Adjacent *adjacent;
 
-    Node(int data) {
+    Node(int data)
+    {
         this->data = data;
+        this->status = 0;
+        this->next = NULL;
+        this->adjacent = NULL;
+    }
+};
+
+class Adjacent
+{
+public:
+    class Node *node;
+    Adjacent *next;
+    Adjacent(Node *node)
+    {
+        this->node = node;
         this->next = NULL;
     }
 };
 
 typedef Node node;
+typedef Adjacent adjcent;
 
-struct vertex_list {
-    Node * listHead;
-};
+node *start = NULL, *nodeptr;
+adjcent *adjacentptr = NULL;
 
-struct Graph {
-    int data;
-    struct vertex_list *v_list;
-};
-
-typedef Graph graph;
-
-graph * createGraph(int vertex) {
-    int i;
-    graph* va_list = new Graph;
-    va_list->data = vertex;
-
-    va_list->v_list = new vertex_list[vertex];
-
-    for(int i = 0; i < vertex; i++) {
-        va_list->v_list[i].listHead = NULL;
+class Graph
+{
+public:
+    void createNodeList(int v)
+    {
+        node *tail = start;
+        for (int i = 0; i < v; i++)
+        {
+            if (i == 0)
+            {
+                start = new Node(i);
+                tail = start;
+            }
+            else
+            {
+                tail->next = new Node(i);
+                tail = tail->next;
+            }
+        }
     }
 
-    return va_list;
-}
+    void printNodeList()
+    {
+        node *temp = start;
 
-
-void addEdge(graph *g, int v1, int v2) {
-    node *newNode1 = new Node(v1);
-    node *newNode2 = new Node(v2);
-
-    if(g->v_list[v2].listHead == NULL) g->v_list[v2].listHead = newNode1;
-    else {
-        newNode1->next = g->v_list[v2].listHead;
-        g->v_list[v2].listHead = newNode2;
-    }
-
-    // for undirected
-    if(g->v_list[v1].listHead == NULL) g->v_list[v1].listHead = newNode1;
-    else {
-        newNode2->next = g->v_list[v1].listHead;
-        g->v_list[v1].listHead = newNode1;
-    }
-}
-
-int main() {
-    int i, vertex, edge;
-
-    cout << "Enter number of vertex : ";
-    cin >> vertex;
-
-    graph *g = createGraph(vertex);
-
-    cout << "Enter number of edges : ";
-    cin >> edge;
-    for(int i = 0; i < edge; i++) {
-        int u, v;
-        cin >> u >> v;
-
-        addEdge(g, u, v);
-    }
-
-    cout << endl;
-
-    for(int i = 0; i < vertex; i++) {
-        cout << i << " --> ";
-        node *temp = g->v_list[i].listHead;
-        while(temp != NULL) {
+        while (temp != NULL)
+        {
             cout << temp->data << " ";
             temp = temp->next;
         }
         cout << endl;
     }
 
+    node *findNodeForItem(int item)
+    {
+        node *temp = start;
+        while (temp != NULL)
+        {
+            if (temp->data == item)
+                return temp;
+            temp = temp->next;
+        }
+        return NULL;
+    }
+
+    void createGraph(int vertex)
+    {
+        createNodeList(vertex);
+        printNodeList();
+
+        nodeptr = start;
+        while (nodeptr != NULL)
+        {
+            adjacentptr = NULL;
+            cout << "Enter connected nodes with " << nodeptr->data << " (-1) for end : ";
+            while (true)
+            {
+                int item;
+                cin >> item;
+                if (item == -1)
+                    break;
+                else if (findNodeForItem(item) != NULL)
+                {
+                    node *temp = findNodeForItem(item);
+                    if (nodeptr->adjacent == NULL)
+                    {
+                        nodeptr->adjacent = new Adjacent(temp);
+                        adjacentptr = nodeptr->adjacent;
+                    }
+                    else
+                    {
+                        adjacentptr->next = new Adjacent(temp);
+                        adjacentptr = adjacentptr->next;
+                    }
+                }
+                else
+                {
+                    cout << "Node not found! " << endl;
+                }
+            }
+            nodeptr = nodeptr->next;
+        }
+    }
+
+    void printAdjacencyList()
+    {
+        nodeptr = start;
+        while (nodeptr != NULL)
+        {
+            cout << nodeptr->data << " --> ";
+            adjacentptr = nodeptr->adjacent;
+            while (adjacentptr != NULL)
+            {
+                cout << adjacentptr->node->data << " ";
+                adjacentptr = adjacentptr->next;
+            }
+            cout << endl;
+            nodeptr = nodeptr->next;
+        }
+    }
+
+    
+vector<int> bfs () {
+
+    // vector<bool>vis(vertex, false);
+    queue<node*>q;
+    vector<int>bfs_result;
+    q.push(start);
+    start->status = 1;
+    while(!q.empty()) {
+        node *temp = q.front();
+        q.pop();
+        temp->status = 2;
+        bfs_result.push_back(temp->data);
+        adjacentptr = temp->adjacent;
+        while(adjacentptr != NULL) {
+            if(adjacentptr->node->status == 0) {
+                q.push(adjacentptr->node);
+                adjacentptr->node->status = 1;
+            }
+            adjacentptr = adjacentptr->next;
+        }
+    }
+    return bfs_result;
+}
+
+vector<int> dfs () {
+    vector<int>dfs_result;
+    stack<node*>s;
+    s.push(start);
+    start->status = 1;
+    while(!s.empty()) {
+        node *temp = s.top();
+        s.pop();
+        dfs_result.push_back(temp->data);
+        if(temp->status == 1) temp->status = 2;
+        adjacentptr = temp->adjacent;
+        while(adjacentptr != NULL) {
+            if(adjacentptr->node->status == 0) {
+                s.push(adjacentptr->node);
+                adjacentptr->node->status = 1;
+            }
+            adjacentptr = adjacentptr->next;
+        }
+    }
+    return dfs_result;
+}
+
+void reset() {
+    nodeptr = start;
+    while(nodeptr != NULL) {
+        nodeptr->status = 0;
+        nodeptr = nodeptr->next;
+    }
+}
+
+};
+
+
+int main()
+{
+
+    cout << "Enter number of vertexes : ";
+    int vertex;
+    cin >> vertex;
+    Graph graph;
+    graph.createGraph(vertex);
+    graph.printAdjacencyList();
+
+    graph.reset();
+    vector<int> res = graph.bfs();
+
+    cout << "BFS result : ";
+    for(auto i : res) cout << i << " ";
+    cout << endl;
+
+    graph.reset();
+    vector<int> dfs = graph.dfs();
+
+    cout << "DFS result : ";
+    for(auto i : dfs) cout << i << " ";
+    cout << endl;
+
     return 0;
 }
+
+/*
+input :
+ 
+4
+
+1 2 3 -1
+0 3 -1
+0 3 -1
+0 1 2 -1
+
+output : 
+
+0 --> 1 2 3
+1 --> 0 3
+2 --> 0 3
+3 --> 0 1 2
+
+BFS result : 0 1 2 3
+DFS result : 0 3 2 1
+*/
