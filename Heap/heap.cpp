@@ -54,6 +54,7 @@ class Heap {
             }
             else if(heap[temp_index] < heap[temp_index*2 + 1]) {
                 swap(heap[temp_index], heap[temp_index*2 + 1]);
+                temp_index = temp_index*2 + 1;
             }
             else return;
         }
