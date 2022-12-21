@@ -9,3 +9,13 @@ void rotate(int arr[], int n)
         arr[i] = a[i];
     }
 }
+
+
+// Another Solution 
+
+//     void rotate(int arr[], int n)
+//     {
+//         for(int i = n-1; i >= 1; i--) {
+//             swap(arr[i],arr[i-1]);
+//         }
+//     }
